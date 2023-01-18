@@ -138,14 +138,17 @@ def parse_card_page(driver, timeout, card_url):
     rows = table_body.find_elements(By.XPATH, ("//*[starts-with(@id, 'articleRow')]"))
     for row in rows:
         col_product = row.find_element(By.CLASS_NAME, 'col-product')
-        product_attributes = col_product.find_element((By.CLASS_NAME, 'product-attributes'))
+        product_attributes = col_product.find_element(By.CLASS_NAME, 'product-attributes')
         condition = product_attributes.find_element(By.TAG_NAME, 'a').get_attribute('data-original-title')
-        language = product_attributes.find_element(By.TAG_NAME , 'span').get_attribute('data-original-title')
-        if condition == "Near Mint" and language == "English":
+        language = product_attributes.find_element(By.CLASS_NAME , 'icon').get_attribute('data-original-title')
+        print(f"{condition} {language}")
+        if (condition == "Near Mint" or condition == "Mint") and language == "English":
             price_container = row.find_element(By.CLASS_NAME, 'price-container')
             raw_price = price_container.find_element(By.TAG_NAME, 'span').text
             price_euros = float(raw_price.split(' ')[0].replace('.', '').replace(',', '.')) * 1.2
             return str(price_euros)
+    else:
+        return ""
 
 
 def parse_card_market(csv_file):
@@ -180,17 +183,17 @@ def parse_card_market(csv_file):
                 sort_by = 'collectorsnumber_asc'
                 rows_to_write = parse_expansion_page(driver, timeout, expansion_slug, sort_by, page, slugs, super_expansion, edition)
                 for row_to_write in rows_to_write:
-                    low_nm_price = parse_card_page(driver, timeout, url=row_to_write[4])
-                    final_row_to_write =  row_to_write.append(low_nm_price)
-                    f.writelines('\t'.join(final_row_to_write))
+                    low_nm_price = parse_card_page(driver, timeout, card_url=row_to_write[4])
+                    row_to_write.append(low_nm_price)
+                    f.write('\t'.join(row_to_write))
 
             else:
                 sort_by = 'collectorsnumber_desc'
                 rows_to_write = parse_expansion_page(driver, timeout, expansion_slug, sort_by, page, slugs, super_expansion,edition)
                 for row_to_write in rows_to_write:
-                    low_nm_price = parse_card_page(driver, timeout, url=row_to_write[4])
-                    final_row_to_write =  row_to_write.append(low_nm_price)
-                    f.writelines('\t'.join(final_row_to_write))
+                    low_nm_price = parse_card_page(driver, timeout, card_url=row_to_write[4])
+                    row_to_write.append(low_nm_price)
+                    f.write('\t'.join(row_to_write))
     driver.quit()
 
 # make runable
