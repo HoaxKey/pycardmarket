@@ -8,6 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 import re
+import statistics
 from datetime import datetime
 
 def parse_expansion_map(driver, timeout):
@@ -136,24 +137,32 @@ def parse_card_page(driver, timeout, card_url):
     table_body = driver.find_element(By.CLASS_NAME, 'table-body')
     # may need a . separator
     rows = table_body.find_elements(By.XPATH, ("//*[starts-with(@id, 'articleRow')]"))
+    prices = []
     for row in rows:
         col_product = row.find_element(By.CLASS_NAME, 'col-product')
         product_attributes = col_product.find_element(By.CLASS_NAME, 'product-attributes')
         condition = product_attributes.find_element(By.TAG_NAME, 'a').get_attribute('data-original-title')
         language = product_attributes.find_element(By.CLASS_NAME , 'icon').get_attribute('data-original-title')
-        print(f"{condition} {language}")
+        num_available = int(row.find_element(By.CLASS_NAME, 'amount-container').find_element(By.CLASS_NAME, 'item-count').text)
+        #print(f"{condition} {language}")
         if (condition == "Near Mint" or condition == "Mint") and language == "English":
             price_container = row.find_element(By.CLASS_NAME, 'price-container')
             raw_price = price_container.find_element(By.TAG_NAME, 'span').text
-            price_euros = float(raw_price.split(' ')[0].replace('.', '').replace(',', '.')) * 1.2
-            return "{:0.2f}".format(price_euros)
+            price_euros = float(raw_price.split(' ')[0].replace('.', '').replace(',', '.'))
+            for i in range(0,3):
+                prices.append(price_euros)
+            #return "{:0.2f}".format(price_euros)
     else:
         return ""
+    return statistics.median(prices)
+
+
 
 
 def parse_card_market(csv_file):
     # set the driver
-    service = Service(executable_path="C:/Users/chad0/PycharmProjects/chromedriver")
+    #service = Service(executable_path="C:/Users/chad0/PycharmProjects/chromedriver")
+    service = Service(executable_path="/Users/jfoster/Documents/programs/chromedriver/chromedriver")
     driver = webdriver.Chrome(service=service)
     timeout = 10
     expansion_map = parse_expansion_map(driver, timeout)
@@ -198,5 +207,5 @@ def parse_card_market(csv_file):
 
 # make runable
 if __name__ == '__main__':
-    csv_file = 'FABpromos.txt'
+    csv_file = 'test.txt'
     parse_card_market(csv_file)
