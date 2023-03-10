@@ -1,6 +1,6 @@
 import csv
 
-from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.chrome.service import Service
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
@@ -122,8 +122,8 @@ def parse_expansion_page(driver, timeout, expansion_slug, sort_by, page, slugs, 
 
 def parse_card_market(csv_file):
     # set the driver
-    service = Service(executable_path="/Users/jfoster/Documents/programs/gecko/geckodriver")
-    driver = webdriver.Firefox(service=service)
+    service = Service(executable_path="C:/Users/chad0/PycharmProjects/chromedriver")
+    driver = webdriver.Chrome(service=service)
     timeout = 10
     expansion_map = parse_expansion_map(driver, timeout)
     expansion = print_input_request(expansion_map)
@@ -151,16 +151,16 @@ def parse_card_market(csv_file):
             if page < 15:
                 sort_by = 'collectorsnumber_asc'
                 rows_to_write = parse_expansion_page(driver, timeout, expansion_slug, sort_by, page, slugs, super_expansion, edition)
-                f.writelines(rows_to_write.join('\t'))
-
+                for row in rows_to_write:
+                    f.write('\t'.join(row) + '\n')
             else:
                 sort_by = 'collectorsnumber_desc'
                 rows_to_write = parse_expansion_page(driver, timeout, expansion_slug, sort_by, page, slugs, super_expansion,edition)
-                f.writelines(rows_to_write.join('\t'))
-
+                for row in rows_to_write:
+                    f.write('\t'.join(row) + '\n')
     driver.quit()
 
 # make runable
 if __name__ == '__main__':
-    csv_file = 'test.txt'
+    csv_file = 'LGSPromos.txt'
     parse_card_market(csv_file)

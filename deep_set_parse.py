@@ -1,6 +1,6 @@
 import csv
 
-from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.chrome.service import Service
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
@@ -146,15 +146,15 @@ def parse_card_page(driver, timeout, card_url):
             price_container = row.find_element(By.CLASS_NAME, 'price-container')
             raw_price = price_container.find_element(By.TAG_NAME, 'span').text
             price_euros = float(raw_price.split(' ')[0].replace('.', '').replace(',', '.')) * 1.2
-            return str(price_euros)
+            return "{:0.2f}".format(price_euros)
     else:
         return ""
 
 
 def parse_card_market(csv_file):
     # set the driver
-    service = Service(executable_path="/Users/jfoster/Documents/programs/gecko/geckodriver")
-    driver = webdriver.Firefox(service=service)
+    service = Service(executable_path="C:/Users/chad0/PycharmProjects/chromedriver")
+    driver = webdriver.Chrome(service=service)
     timeout = 10
     expansion_map = parse_expansion_map(driver, timeout)
     expansion = print_input_request(expansion_map)
@@ -184,19 +184,19 @@ def parse_card_market(csv_file):
                 rows_to_write = parse_expansion_page(driver, timeout, expansion_slug, sort_by, page, slugs, super_expansion, edition)
                 for row_to_write in rows_to_write:
                     low_nm_price = parse_card_page(driver, timeout, card_url=row_to_write[4])
-                    row_to_write.append(low_nm_price)
-                    f.write('\t'.join(row_to_write))
+                    row_to_write[8] = low_nm_price
+                    f.write('\t'.join(row_to_write) + '\n')
 
             else:
                 sort_by = 'collectorsnumber_desc'
                 rows_to_write = parse_expansion_page(driver, timeout, expansion_slug, sort_by, page, slugs, super_expansion,edition)
                 for row_to_write in rows_to_write:
                     low_nm_price = parse_card_page(driver, timeout, card_url=row_to_write[4])
-                    row_to_write.append(low_nm_price)
-                    f.write('\t'.join(row_to_write))
+                    row_to_write[8] = low_nm_price
+                    f.write('\t'.join(row_to_write) + '\n')
     driver.quit()
 
 # make runable
 if __name__ == '__main__':
-    csv_file = 'test.txt'
+    csv_file = 'FABpromos.txt'
     parse_card_market(csv_file)
